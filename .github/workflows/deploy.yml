@@ -1,6 +1,6 @@
 name: Terraform Deploy (Lambda + API Gateway)
 
-# 👇 Manual trigger only
+# 👇 Run manually only
 on:
   workflow_dispatch:
 
@@ -25,6 +25,7 @@ jobs:
         with:
           terraform_version: 1.9.0
 
+      # 👇 All Terraform commands run inside ./terraform
       - name: Terraform Init
         working-directory: ./terraform
         run: terraform init
