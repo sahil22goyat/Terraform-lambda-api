@@ -11,19 +11,13 @@ provider "aws" {
   region = var.aws_region
 }
 
-# Identify the caller (optional, for context)
+# Identify the caller (optional)
 data "aws_caller_identity" "me" {}
 
-# --- S3 Bucket ---
-# Create only the bucket, no object upload or key reference
+# --- S3 Bucket (only bucket, no object upload) ---
 resource "aws_s3_bucket" "images" {
   bucket = var.s3_bucket_name
-}
-
-# Recommended ACL (since inline acl in bucket is deprecated)
-resource "aws_s3_bucket_acl" "images_acl" {
-  bucket = aws_s3_bucket.images.id
-  acl    = "private"
+  # default is private, so ACL not needed
 }
 
 # --- IAM Role & Policy for Lambda ---
@@ -66,12 +60,12 @@ resource "aws_iam_role_policy" "lambda_policy" {
 
 # --- Lambda Function ---
 resource "aws_lambda_function" "demo" {
-  function_name = var.lambda_name
-  filename      = "${path.module}/../lambda/lambda.zip"
+  function_name    = var.lambda_name
+  filename         = "${path.module}/../lambda/lambda.zip"
   source_code_hash = filebase64sha256("${path.module}/../lambda/lambda.zip")
-  handler       = "lambda_function.lambda_handler"
-  runtime       = "python3.9"
-  role          = aws_iam_role.lambda_role.arn
+  handler          = "lambda_function.lambda_handler"
+  runtime          = "python3.9"
+  role             = aws_iam_role.lambda_role.arn
 
   environment {
     variables = {
