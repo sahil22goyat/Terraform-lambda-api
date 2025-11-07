@@ -1,0 +1,5 @@
+*.tfstate
+*.tfstate.*
+.terraform/
+terraform_lambda_build/
+
