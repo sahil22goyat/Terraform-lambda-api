@@ -15,6 +15,9 @@ jobs:
       S3_BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME }}
       S3_IMAGE_KEY: ${{ secrets.S3_IMAGE_KEY }}
       LAMBDA_NAME: ${{ secrets.LAMBDA_NAME }}
+      TF_VAR_s3_bucket_name: ${{ secrets.S3_BUCKET_NAME }}
+      TF_VAR_lambda_name: ${{ secrets.LAMBDA_NAME }}
+      TF_VAR_aws_region: ${{ secrets.AWS_REGION }}
 
     steps:
       - name: Checkout repository
