@@ -1,6 +1,6 @@
 name: Terraform Deploy (Lambda + API Gateway)
 
-# 👇 This makes the workflow manual-trigger only
+# 👇 Run manually only
 on:
   workflow_dispatch:
 
@@ -25,14 +25,19 @@ jobs:
         with:
           terraform_version: 1.9.0
 
+      # 👇 All Terraform commands run inside ./terraform
       - name: Terraform Init
+        working-directory: ./terraform
         run: terraform init
 
       - name: Terraform Validate
+        working-directory: ./terraform
         run: terraform validate
 
       - name: Terraform Plan
+        working-directory: ./terraform
         run: terraform plan -out=tfplan
 
       - name: Terraform Apply
+        working-directory: ./terraform
         run: terraform apply -auto-approve tfplan
