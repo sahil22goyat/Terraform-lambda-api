@@ -5,20 +5,28 @@ terraform {
       version = "~> 5.0"
     }
   }
-  # backend can be configured in backend.tf or here
 }
 
 provider "aws" {
   region = var.aws_region
 }
 
+# Identify the caller (optional, for context)
 data "aws_caller_identity" "me" {}
 
+# --- S3 Bucket ---
+# Create only the bucket, no object upload or key reference
 resource "aws_s3_bucket" "images" {
   bucket = var.s3_bucket_name
+}
+
+# Recommended ACL (since inline acl in bucket is deprecated)
+resource "aws_s3_bucket_acl" "images_acl" {
+  bucket = aws_s3_bucket.images.id
   acl    = "private"
 }
 
+# --- IAM Role & Policy for Lambda ---
 data "aws_iam_policy_document" "lambda_assume" {
   statement {
     actions = ["sts:AssumeRole"]
@@ -43,6 +51,7 @@ data "aws_iam_policy_document" "lambda_policy" {
     ]
     resources = ["arn:aws:logs:*:*:*"]
   }
+
   statement {
     actions = ["s3:GetObject"]
     resources = ["${aws_s3_bucket.images.arn}/*"]
@@ -55,10 +64,11 @@ resource "aws_iam_role_policy" "lambda_policy" {
   policy = data.aws_iam_policy_document.lambda_policy.json
 }
 
+# --- Lambda Function ---
 resource "aws_lambda_function" "demo" {
   function_name = var.lambda_name
-  filename      = "${path.module}/../terraform_lambda_build/lambda.zip" # path set by workflow; we'll create symlink in GH action
-  source_code_hash = filebase64sha256("${path.module}/../terraform_lambda_build/lambda.zip")
+  filename      = "${path.module}/../lambda/lambda.zip"
+  source_code_hash = filebase64sha256("${path.module}/../lambda/lambda.zip")
   handler       = "lambda_function.lambda_handler"
   runtime       = "python3.9"
   role          = aws_iam_role.lambda_role.arn
@@ -66,12 +76,13 @@ resource "aws_lambda_function" "demo" {
   environment {
     variables = {
       BUCKET_NAME = aws_s3_bucket.images.bucket
-      IMAGE_KEY   = var.s3_image_key
     }
   }
+
   depends_on = [aws_iam_role_policy.lambda_policy]
 }
 
+# --- API Gateway ---
 resource "aws_apigatewayv2_api" "http_api" {
   name          = "demo-http-api"
   protocol_type = "HTTP"
@@ -104,4 +115,15 @@ resource "aws_lambda_permission" "apigw" {
   source_arn    = "${aws_apigatewayv2_api.http_api.execution_arn}/*/*"
 }
 
+# --- Outputs ---
+output "bucket_name" {
+  value = aws_s3_bucket.images.bucket
+}
 
+output "lambda_function_name" {
+  value = aws_lambda_function.demo.function_name
+}
+
+output "api_endpoint" {
+  value = aws_apigatewayv2_api.http_api.api_endpoint
+}
