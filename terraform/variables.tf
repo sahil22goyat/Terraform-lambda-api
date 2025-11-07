@@ -1,6 +1,17 @@
+# AWS Region variable
 variable "aws_region" {
-  description = "AWS region where resources will be created"
+  description = "AWS region for deployment"
   type        = string
-  default     = "us-east-1"
 }
 
+# S3 Bucket variable
+variable "s3_bucket_name" {
+  description = "Name of the S3 bucket that stores demo images"
+  type        = string
+}
+
+# Lambda function name
+variable "lambda_name" {
+  description = "Name of the Lambda function"
+  type        = string
+}
