@@ -41,6 +41,7 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
 
+     
 
       - name: Terraform Init
         run: terraform init -input=false
@@ -53,8 +54,10 @@ jobs:
         run: |
           echo "Uploading new deployment image..."
           aws s3 cp "${{ github.event.inputs.deployment_image_path }}" "s3://deploybucket9466901628/deployment.png" --acl private
-
+ 
       - name: Terraform Apply
-        run: terraform apply -auto-approve -input=false \
-          -var="upload_new_image=${{ github.event.inputs.upload_new_image }}" \
-          -var="deployment_image_path=${{ github.event.inputs.deployment_image_path }}"
+        run: |
+            terraform apply -auto-approve -input=false \
+            $([[ "${{ github.event.inputs.upload_new_image }}" != "" ]] && echo "-var=upload_new_image=${{ github.event.inputs.upload_new_image }}") \
+            $([[ "${{ github.event.inputs.deployment_image_path }}" != "" ]] && echo "-var=deployment_image_path=${{ github.event.inputs.deployment_image_path }}")
+  
