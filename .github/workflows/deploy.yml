@@ -40,6 +40,10 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
+
+      - name: List Terraform folder
+        run: ls -l ./Terraform-lambda-api
+
       - name: Terraform Init
         run: terraform init -input=false
 
@@ -56,4 +60,3 @@ jobs:
         run: terraform apply -auto-approve -input=false \
           -var="upload_new_image=${{ github.event.inputs.upload_new_image }}" \
           -var="deployment_image_path=${{ github.event.inputs.deployment_image_path }}"
-
