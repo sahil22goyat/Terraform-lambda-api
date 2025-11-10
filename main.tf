@@ -13,3 +13,12 @@ provider "aws" {
   region = "eu-west-1"  # Ireland
   # credentials come from AWS CLI or environment variables
 }
+terraform {
+  backend "s3" {
+    bucket         = "sjadjsinf3"   # S3 bucket you created
+    key            = "terraform.tfstate"           # path to state file in bucket
+    region         = "eu-west-1"
+    encrypt        = true
+  }
+}
+
