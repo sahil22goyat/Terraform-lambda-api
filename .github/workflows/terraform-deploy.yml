@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: /home/ec2-user/Terraform-lambda-api   # your Terraform directory
+        working-directory: ./Terraform-lambda-api   # your Terraform directory
 
     steps:
       - name: Checkout repo
@@ -39,6 +39,10 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
+
+
+      - name: List Terraform folder
+        run: ls -l ./Terraform-lambda-api
 
       - name: Terraform Init
         run: terraform init -input=false
