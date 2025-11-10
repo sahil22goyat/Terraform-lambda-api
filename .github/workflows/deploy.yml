@@ -41,8 +41,6 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
 
-      - name: List Terraform folder
-        run: ls -l ./Terraform-lambda-api
 
       - name: Terraform Init
         run: terraform init -input=false
