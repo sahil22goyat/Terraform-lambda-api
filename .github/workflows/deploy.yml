@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./Terraform-lambda-api   # your Terraform directory
+        working-directory: .   # your Terraform directory
 
     steps:
       - name: Checkout repo
