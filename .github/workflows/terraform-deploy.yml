@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./trial   # your Terraform directory
+        working-directory: /home/ec2-user/Terraform-lambda-api   # your Terraform directory
 
     steps:
       - name: Checkout repo
@@ -56,5 +56,3 @@ jobs:
         run: terraform apply -auto-approve -input=false \
           -var="upload_new_image=${{ github.event.inputs.upload_new_image }}" \
           -var="deployment_image_path=${{ github.event.inputs.deployment_image_path }}"
-
-
