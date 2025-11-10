@@ -1,46 +1,62 @@
-name: Terraform Deploy (Lambda + API Gateway)
+name: Terraform Lambda Deployment
 
-# 👇 Run manually only
 on:
   workflow_dispatch:
+    inputs:
+      upload_new_image:
+        description: "Upload new deployment image?"
+        required: true
+        default: "false"
+      deployment_image_path:
+        description: "Path to local image (if uploading new one)"
+        required: false
+  push:
+    branches:
+      - deploy
+
+permissions:
+  contents: read
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
-    env:
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      AWS_REGION: ${{ secrets.AWS_REGION }}
-      S3_BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME }}
-      S3_IMAGE_KEY: ${{ secrets.S3_IMAGE_KEY }}
-      LAMBDA_NAME: ${{ secrets.LAMBDA_NAME }}
-      TF_VAR_s3_bucket_name: ${{ secrets.S3_BUCKET_NAME }}
-      TF_VAR_lambda_name: ${{ secrets.LAMBDA_NAME }}
-      TF_VAR_aws_region: ${{ secrets.AWS_REGION }}
+    defaults:
+      run:
+        working-directory: .   # your Terraform directory
 
     steps:
-      - name: Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v4
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.9.0
+          terraform_version: 1.9.7
 
-      # 👇 All Terraform commands run inside ./terraform
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+
+      - name: List Terraform folder
+        run: ls -l ./Terraform-lambda-api
+
       - name: Terraform Init
-        working-directory: ./terraform
-        run: terraform init
-
-      - name: Terraform Validate
-        working-directory: ./terraform
-        run: terraform validate
+        run: terraform init -input=false
 
       - name: Terraform Plan
-        working-directory: ./terraform
-        run: terraform plan -out=tfplan
+        run: terraform plan -input=false
+
+      - name: Upload new image (optional)
+        if: ${{ github.event.inputs.upload_new_image == 'true' }}
+        run: |
+          echo "Uploading new deployment image..."
+          aws s3 cp "${{ github.event.inputs.deployment_image_path }}" "s3://deploybucket9466901628/deployment.png" --acl private
 
       - name: Terraform Apply
-        working-directory: ./terraform
-        run: terraform apply -auto-approve tfplan
+        run: terraform apply -auto-approve -input=false \
+          -var="upload_new_image=${{ github.event.inputs.upload_new_image }}" \
+          -var="deployment_image_path=${{ github.event.inputs.deployment_image_path }}"
